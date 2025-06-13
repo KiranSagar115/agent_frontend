@@ -35,12 +35,67 @@ export default function AuthForm() {
         script.src = 'https://accounts.google.com/gsi/client';
         script.async = true;
         script.defer = true;
+        script.onload = () => {
+          initializeGoogleSignIn();
+          renderGoogleButton();
+        };
         document.body.appendChild(script);
+      } else {
+        initializeGoogleSignIn();
+        renderGoogleButton();
       }
     };
 
     loadGoogleScript();
   }, []);
+
+  const renderGoogleButton = () => {
+    if (!window.google || !GOOGLE_CLIENT_ID) {
+      console.error('Google client ID or Google object not available');
+      return;
+    }
+
+    try {
+      google.accounts.id.renderButton(
+        document.getElementById('googleSignInButton'),
+        {
+          type: 'standard',
+          theme: 'outline',
+          size: 'large',
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'left',
+          width: '100%'
+        }
+      );
+      console.log('Google button rendered successfully');
+    } catch (error) {
+      console.error('Error rendering Google button:', error);
+    }
+  };
+
+  const initializeGoogleSignIn = () => {
+    if (!window.google || !GOOGLE_CLIENT_ID) {
+      console.error('Google client ID:', GOOGLE_CLIENT_ID);
+      console.error('Google object:', window.google);
+      return;
+    }
+
+    try {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        context: 'signin',
+        ux_mode: 'popup',
+        flow: 'implicit'
+      });
+      console.log('Google Sign-In initialized successfully');
+    } catch (error) {
+      console.error('Error initializing Google Sign-In:', error);
+    }
+  };
 
   const handleInputChange = (e) => {
     setFormData({
@@ -90,45 +145,32 @@ export default function AuthForm() {
     }
   };
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleCallback = async (response) => {
     try {
-      if (!window.google) {
-        throw new Error('Google Sign-In script not loaded');
-      }
-
-      if (!GOOGLE_CLIENT_ID) {
-        throw new Error('Google Client ID is not configured');
-      }
-
-      const client = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'email profile',
-        callback: async (response) => {
-          try {
-            setIsLoading(true);
-            const result = await axios.post(`${API_URL}/auth/google`, {
-              token: response.credential
-            });
-
-            // Store token in localStorage
-            localStorage.setItem('token', result.data.token);
-            localStorage.setItem('user', JSON.stringify(result.data.user));
-
-            // Redirect or update app state
-            window.location.href = '/dashboard';
-          } catch (error) {
-            console.error('Google sign-in error:', error);
-            setError(error.response?.data?.message || 'Google sign-in failed');
-          } finally {
-            setIsLoading(false);
-          }
+      setIsLoading(true);
+      console.log('Google response:', response);
+      
+      const result = await axios.post(`${API_URL}/auth/google`, {
+        token: response.credential
+      }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
 
-      client.requestAccessToken();
+      // Store token and user data in localStorage
+      localStorage.setItem('token', result.data.token);
+      localStorage.setItem('user', JSON.stringify(result.data.user));
+
+      // Redirect to dashboard
+      window.location.href = '/dashboard';
     } catch (error) {
-      console.error('Google initialization error:', error);
-      setError(error.message || 'Failed to initialize Google Sign-In');
+      console.error('Google sign-in error:', error);
+      setError(error.response?.data?.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -287,16 +329,8 @@ export default function AuthForm() {
               </div>
             </div>
 
-            {/* Google sign-in */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full py-3 bg-white/10 border border-white/20 text-white font-medium rounded-xl hover:bg-white/20 transform hover:scale-105 transition-all duration-300 backdrop-blur-sm flex items-center justify-center space-x-3 text-sm"
-            >
-              <Chrome className="w-5 h-5" />
-              <span>Continue with Google</span>
-            </button>
+            {/* Google sign-in button container */}
+            <div id="googleSignInButton" className="w-full flex justify-center"></div>
           </form>
 
           {/* Footer */}
