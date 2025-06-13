@@ -9,7 +9,7 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/auth');
+    navigate('/auth', { replace: true });
   };
 
   return (
@@ -17,42 +17,44 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={user ? "/dashboard" : "/auth"} className="flex items-center space-x-2">
             <Code2 className="w-8 h-8 text-white" />
             <span className="text-white font-bold text-xl">AI Learn</span>
           </Link>
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to="/"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <Link
-              to="/chat"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <MessageSquare className="w-5 h-5" />
-              <span>Chat</span>
-            </Link>
-            <Link
-              to="/learn"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <BookOpen className="w-5 h-5" />
-              <span>Learn</span>
-            </Link>
-            <Link
-              to="/problems"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
-            >
-              <Code2 className="w-5 h-5" />
-              <span>Problems</span>
-            </Link>
-          </div>
+          {/* Navigation Links - Only show when logged in */}
+          {user && (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link
+                to="/dashboard"
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <Home className="w-5 h-5" />
+                <span>Home</span>
+              </Link>
+              <Link
+                to="/chat"
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>Chat</span>
+              </Link>
+              <Link
+                to="/learn"
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <BookOpen className="w-5 h-5" />
+                <span>Learn</span>
+              </Link>
+              <Link
+                to="/problems"
+                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              >
+                <Code2 className="w-5 h-5" />
+                <span>Problems</span>
+              </Link>
+            </div>
+          )}
 
           {/* Profile Section */}
           <div className="flex items-center space-x-4">
