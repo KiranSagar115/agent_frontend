@@ -27,7 +27,15 @@ export default function MessageDisplay({
                 <div className="text-white text-xs sm:text-base break-words whitespace-pre-wrap">{message.content}</div>
                 {message.file && (
                   <div className="mt-2 p-2 bg-gray-800/50 rounded-lg">
-                    <span className="text-gray-300 text-xs sm:text-sm">📎 {message.file.name}</span>
+                    {console.log("Debugging message.file and message.fileMimeType:", message.file, message.fileMimeType)}
+                    <img
+                      src={`data:${message.fileMimeType};base64,${message.file}`}
+                      alt="Attached content"
+                      className="max-w-full h-auto rounded-md object-contain max-h-48"
+                    />
+                    {!message.content && (
+                      <span className="text-gray-300 text-xs sm:text-sm block mt-2">📎 Attached image</span>
+                    )}
                   </div>
                 )}
               </div>

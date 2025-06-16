@@ -18,21 +18,35 @@ export default function ChatPage() {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
+  // New function to start a fresh chat session (frontend state only)
+  const startNewChatSession = () => {
+    setCurrentChatId(null);
+    setMessages([]);
+    setNewMessage('');
+    setSelectedFile(null);
+    setError(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; // Reset textarea height
+    }
+    focusTextarea(); // Attempt to focus after resetting
+  };
+
+  useEffect(() => {
+    // Load chat history on mount
+    loadChatHistory();
+    // Start a new session on mount if no current chat (or if returning to page)
+    // This ensures a clean slate for typing the first message of a new chat
+    if (!currentChatId) {
+      startNewChatSession();
+    }
+  }, []);
+
   // Auto-focus textarea when component mounts and after messages update
   useEffect(() => {
     if (textareaRef.current && !isLoading) {
       textareaRef.current.focus();
     }
   }, [messages, isLoading]);
-
-  useEffect(() => {
-    // Create a new chat when component mounts if no chat exists
-    if (!currentChatId) {
-      createNewChat();
-    }
-    // Load chat history
-    loadChatHistory();
-  }, []);
 
   // Focus textarea when chat changes
   useEffect(() => {
@@ -66,44 +80,10 @@ export default function ChatPage() {
     }
   };
 
+  // Renamed from createNewChat, now only for internal state reset
   const createNewChat = async () => {
-    try {
-      const userId = getUserIdFromToken();
-      if (!userId) {
-        throw new Error('Unable to get user ID');
-      }
-
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch(`${API_URL}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title: 'New Chat',
-          messages: []
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create chat');
-      }
-
-      const data = await response.json();
-      setCurrentChatId(data._id);
-      setMessages([]);
-      setError(null);
-      await loadChatHistory(); // Reload chat history after creating new chat
-    } catch (error) {
-      console.error('Error creating chat:', error);
-      setError(error.message);
-    }
+    // This function will now simply trigger a new session
+    startNewChatSession();
   };
 
   const focusTextarea = () => {
@@ -123,12 +103,8 @@ export default function ChatPage() {
     if (!newMessage.trim() && !selectedFile) return;
     
     try {
-      if (!currentChatId) {
-        await createNewChat();
-        if (!currentChatId) {
-          throw new Error('Failed to create chat');
-        }
-      }
+      setIsLoading(true); // Start loading state immediately
+      setError(null);
 
       const messageToSend = newMessage;
       const fileToSend = selectedFile;
@@ -150,43 +126,77 @@ export default function ChatPage() {
         textareaRef.current.style.height = 'auto';
       }
       
-      setIsLoading(true);
-      setError(null);
-
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(`${API_URL}/${currentChatId}/message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ message: messageToSend })
-      });
+      let chatData;
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+      let bodyContent;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to send message');
+      if (selectedFile) {
+        const formData = new FormData();
+        if (messageToSend) {
+          formData.append('message', messageToSend);
+        }
+        formData.append('file', fileToSend);
+        bodyContent = formData;
+        // Don't set Content-Type header manually for FormData
+      } else {
+        headers['Content-Type'] = 'application/json';
+        bodyContent = JSON.stringify({ message: messageToSend });
       }
 
-      const data = await response.json();
-      console.log('Chat response:', data); // Debug log
+      if (!currentChatId) {
+        // This is the first message in a new chat, create chat with this message
+        const response = await fetch(`${API_URL}`, {
+          method: 'POST',
+          headers: headers,
+          body: bodyContent,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create chat with first message');
+        }
+
+        chatData = await response.json();
+        setCurrentChatId(chatData._id); // Set the new chat ID
+        await loadChatHistory(); // Reload sidebar with new chat
+      } else {
+        // Subsequent message in an existing chat
+        const response = await fetch(`${API_URL}/${currentChatId}/message`, {
+          method: 'POST',
+          headers: headers,
+          body: bodyContent,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to send message');
+        }
+        chatData = await response.json();
+      }
+
+      console.log('Chat response:', chatData); // Debug log
       
       // Update messages with the complete chat history from the server
-      setMessages(data.messages || []);
+      setMessages(chatData.messages || []);
       setError(null);
+
     } catch (error) {
       console.error('Error sending message:', error);
       setError(error.message);
-      // Restore message if error occurs
-      setNewMessage(messageToSend);
-      setSelectedFile(fileToSend);
+      // Restore message if error occurs (especially if new chat creation failed)
+      if (!currentChatId) { // If currentChatId is null, it means new chat creation failed
+        setNewMessage(messageToSend);
+        setSelectedFile(fileToSend);
+      }
     } finally {
       setIsLoading(false);
-      // Focus textarea after everything is done
       focusTextarea();
     }
   };
@@ -229,7 +239,10 @@ export default function ChatPage() {
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage(e);
+      // Disable sending if loading
+      if (!isLoading) {
+        handleSendMessage(e);
+      }
     }
   };
 
@@ -318,13 +331,42 @@ export default function ChatPage() {
 
       // If the deleted chat was the current one, create a new chat
       if (chatId === currentChatId) {
-        await createNewChat();
+        startNewChatSession(); // Start a new session, don't create new chat in DB yet
       }
       
       // Reload chat history
       await loadChatHistory();
     } catch (error) {
       console.error('Error deleting chat:', error);
+      setError(error.message);
+    }
+  };
+
+  const handleUpdateChatTitle = async (chatId, newTitle) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`${API_URL}/${chatId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ title: newTitle })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update chat title');
+      }
+
+      // Reload chat history to reflect the updated title
+      await loadChatHistory();
+    } catch (error) {
+      console.error('Error updating chat title:', error);
       setError(error.message);
     }
   };
@@ -344,11 +386,12 @@ export default function ChatPage() {
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        createNewChat={createNewChat}
+        createNewChat={startNewChatSession}
         chatHistory={chatHistory}
         handleChatSelect={handleChatSelect}
         handleDeleteChat={handleDeleteChat}
         currentChatId={currentChatId}
+        handleUpdateChatTitle={handleUpdateChatTitle}
       />
 
       {/* Overlay */}
@@ -436,7 +479,7 @@ export default function ChatPage() {
                   ref={fileInputRef}
                   onChange={handleFileSelect}
                   className="hidden"
-                  accept="image/*,.pdf,.doc,.docx,.txt"
+                  accept="image/*"
                 />
                 
                 {/* File Upload Button */}
