@@ -156,6 +156,14 @@ export default function ChatPage() {
       setSelectedFile(selectedFile);
     } finally {
       setIsLoading(false);
+      // Focus the textarea after message is sent and response is received/error occurred
+      // Adding a small timeout to ensure the DOM is updated before focusing
+      setTimeout(() => {
+        if (textareaRef.current) {
+          console.log("Attempting to focus textarea:", textareaRef.current);
+          textareaRef.current.focus();
+        }
+      }, 0); // Use a 0ms delay to defer execution until the next tick
     }
   };
 
