@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Paperclip, Menu, X, MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
+import Sidebar from '../components/Sidebar'; // Import the new Sidebar component
+import MessageDisplay from '../components/MessageDisplay'; // Import the new MessageDisplay component
 
 const API_URL = 'http://localhost:5000/api/chat';
 
@@ -16,6 +18,13 @@ export default function ChatPage() {
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
 
+  // Auto-focus textarea when component mounts and after messages update
+  useEffect(() => {
+    if (textareaRef.current && !isLoading) {
+      textareaRef.current.focus();
+    }
+  }, [messages, isLoading]);
+
   useEffect(() => {
     // Create a new chat when component mounts if no chat exists
     if (!currentChatId) {
@@ -24,6 +33,15 @@ export default function ChatPage() {
     // Load chat history
     loadChatHistory();
   }, []);
+
+  // Focus textarea when chat changes
+  useEffect(() => {
+    if (textareaRef.current && currentChatId) {
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 100);
+    }
+  }, [currentChatId]);
 
   const getUserIdFromToken = () => {
     try {
@@ -85,6 +103,18 @@ export default function ChatPage() {
     } catch (error) {
       console.error('Error creating chat:', error);
       setError(error.message);
+    }
+  };
+
+  const focusTextarea = () => {
+    if (textareaRef.current) {
+      // Use requestAnimationFrame to ensure DOM updates are complete
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+        // Also set cursor to end of text if there's any
+        const length = textareaRef.current?.value.length || 0;
+        textareaRef.current?.setSelectionRange(length, length);
+      });
     }
   };
 
@@ -152,18 +182,12 @@ export default function ChatPage() {
       console.error('Error sending message:', error);
       setError(error.message);
       // Restore message if error occurs
-      setNewMessage(newMessage);
-      setSelectedFile(selectedFile);
+      setNewMessage(messageToSend);
+      setSelectedFile(fileToSend);
     } finally {
       setIsLoading(false);
-      // Focus the textarea after message is sent and response is received/error occurred
-      // Adding a small timeout to ensure the DOM is updated before focusing
-      setTimeout(() => {
-        if (textareaRef.current) {
-          console.log("Attempting to focus textarea:", textareaRef.current);
-          textareaRef.current.focus();
-        }
-      }, 0); // Use a 0ms delay to defer execution until the next tick
+      // Focus textarea after everything is done
+      focusTextarea();
     }
   };
 
@@ -171,6 +195,8 @@ export default function ChatPage() {
     const file = e.target.files[0];
     if (file) {
       setSelectedFile(file);
+      // Keep focus on textarea after file selection
+      focusTextarea();
     }
   };
 
@@ -183,6 +209,8 @@ export default function ChatPage() {
           const file = item.getAsFile();
           if (file) {
             setSelectedFile(file);
+            // Keep focus on textarea after paste
+            focusTextarea();
           }
         }
       }
@@ -194,6 +222,8 @@ export default function ChatPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Refocus textarea after removing file
+    focusTextarea();
   };
 
   const handleKeyPress = (e) => {
@@ -259,6 +289,8 @@ export default function ChatPage() {
       setCurrentChatId(chatId);
       setMessages(data.messages);
       setSidebarOpen(false);
+      // Focus textarea after chat selection
+      focusTextarea();
     } catch (error) {
       console.error('Error loading chat:', error);
       setError(error.message);
@@ -297,61 +329,27 @@ export default function ChatPage() {
     }
   };
 
+  // Handle clicks outside sidebar to maintain focus
+  const handleMainContentClick = (e) => {
+    setSidebarOpen(false);
+    // Only focus if we're not clicking on an interactive element
+    if (!e.target.closest('button, input, textarea, a')) {
+      focusTextarea();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 md:w-80 bg-gray-900/95 backdrop-blur-sm transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700">
-          <h2 className="text-lg sm:text-xl font-semibold text-white">Chat History</h2>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="p-1.5 sm:p-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <X size={18} className="sm:w-5 sm:h-5" />
-          </button>
-        </div>
-        
-        <div className="p-3 sm:p-4">
-          <button 
-            onClick={createNewChat}
-            className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors mb-3 sm:mb-4 text-sm sm:text-base"
-          >
-            <Plus size={18} className="sm:w-5 sm:h-5" />
-            New Chat
-          </button>
-          
-          <div className="space-y-2">
-            {chatHistory.map((chat) => (
-              <div
-                key={chat._id}
-                onClick={() => handleChatSelect(chat._id)}
-                className={`p-2.5 sm:p-3 bg-gray-800/50 hover:bg-gray-700/50 rounded-lg cursor-pointer transition-colors group ${currentChatId === chat._id ? 'bg-purple-900/50' : ''}`}
-              >
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <MessageCircle size={14} className="sm:w-4 sm:h-4 text-purple-400 mt-1 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-white text-xs sm:text-sm font-medium truncate">{chat.title}</h3>
-                      <button
-                        onClick={(e) => handleDeleteChat(chat._id, e)}
-                        className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 size={12} className="sm:w-3.5 sm:h-3.5" />
-                      </button>
-                    </div>
-                    <p className="text-gray-400 text-xs truncate mt-0.5 sm:mt-1">
-                      {chat.messages[chat.messages.length - 1]?.content || 'No messages yet'}
-                    </p>
-                    <p className="text-gray-500 text-xs mt-0.5 sm:mt-1">
-                      {new Date(chat.updatedAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        createNewChat={createNewChat}
+        chatHistory={chatHistory}
+        handleChatSelect={handleChatSelect}
+        handleDeleteChat={handleDeleteChat}
+        currentChatId={currentChatId}
+      />
 
       {/* Overlay */}
       {sidebarOpen && (
@@ -361,13 +359,13 @@ export default function ChatPage() {
         />
       )}
 
-      {/* Main Content */}
-      <div className="flex flex-col h-screen" onClick={() => setSidebarOpen(false)}>
+      {/* Main Content - Fixed Layout Structure */}
+      <div className="flex flex-col h-screen">
         {/* Top margin for navbar */}
-        <div className="h-16"></div>
+        <div className="h-16 flex-shrink-0"></div>
         
-        {/* Header */}
-        <div className="flex items-center p-3 sm:p-4">
+        {/* Header - Fixed */}
+        <div className="flex items-center p-3 sm:p-4 flex-shrink-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -379,51 +377,24 @@ export default function ChatPage() {
           </button>
         </div>
 
-        {/* Error Message */}
+        {/* Error Message - Fixed */}
         {error && (
-          <div className="mx-auto max-w-5xl w-full px-3 sm:px-4 mb-3 sm:mb-4">
+          <div className="mx-auto max-w-5xl w-full px-3 sm:px-4 mb-3 sm:mb-4 flex-shrink-0">
             <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-2.5 sm:p-3 rounded-lg text-sm sm:text-base">
               {error}
             </div>
           </div>
         )}
 
-        {/* Chat Container */}
-        <div className="flex-1 flex flex-col p-2 sm:p-4 max-w-5xl mx-auto w-full">
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto space-y-2 sm:space-y-4 mb-3 sm:mb-6 px-2 sm:px-0">
-            {messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center text-gray-400">
-                  <MessageCircle size={40} className="sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" />
-                  <p className="text-xs sm:text-base">Start a conversation</p>
-                </div>
-              </div>
-            ) : (
-              messages.map((message, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg sm:rounded-xl p-2.5 sm:p-4 border border-white/20">
-                  <div className="flex items-start space-x-2 sm:space-x-3">
-                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-medium text-xs sm:text-sm flex-shrink-0 ${
-                      message.role === 'user' ? 'bg-purple-500' : 'bg-blue-500'
-                    }`}>
-                      {message.role === 'user' ? 'U' : 'AI'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white text-xs sm:text-base break-words whitespace-pre-wrap">{message.content}</div>
-                      {message.file && (
-                        <div className="mt-2 p-2 bg-gray-800/50 rounded-lg">
-                          <span className="text-gray-300 text-xs sm:text-sm">📎 {message.file.name}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+        {/* Chat Content Area - Flexible */}
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full px-2 sm:px-4 min-h-0">
+          {/* Messages Area - Scrollable */}
+          <div className="flex-1 overflow-y-auto mb-3 sm:mb-6" onClick={() => setSidebarOpen(false)}>
+            <MessageDisplay messages={messages} error={error} />
           </div>
 
-          {/* Input Section */}
-          <div className="border-t border-white/10 pt-2.5 sm:pt-4 px-2 sm:px-0">
+          {/* Input Section - Fixed at bottom */}
+          <div className="flex-shrink-0 border-t border-white/10 pt-2.5 sm:pt-4">
             {/* File Preview */}
             {selectedFile && (
               <div className="mb-2.5 sm:mb-4 p-2.5 sm:p-4 bg-white/5 backdrop-blur-sm rounded-lg sm:rounded-xl border border-white/20">
@@ -494,6 +465,7 @@ export default function ChatPage() {
                     className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none resize-none min-h-[20px] sm:min-h-[24px] max-h-[100px] sm:max-h-[120px] py-1 sm:py-2 px-0 leading-5 sm:leading-6 text-xs sm:text-base"
                     disabled={isLoading}
                     rows={1}
+                    autoFocus
                   />
                   
                   {/* Subtle focus indicator */}
