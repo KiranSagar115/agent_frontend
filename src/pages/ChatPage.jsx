@@ -1,10 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Paperclip, Menu, X, MessageCircle, Plus, Trash2 } from 'lucide-react';
+import { Send, Paperclip, Menu, X, MessageCircle, Plus, Trash2, Code } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';
 import Sidebar from '../components/Sidebar'; // Import the new Sidebar component
 import MessageDisplay from '../components/MessageDisplay'; // Import the new MessageDisplay component
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const API_URL = 'http://localhost:5000/api/chat';
+
+// Helper function to detect programming language from code
+const detectLanguage = (code) => {
+  // Simple language detection based on common patterns
+  if (code.includes('function') && code.includes('=>')) return 'javascript';
+  if (code.includes('def ') && code.includes(':')) return 'python';
+  if (code.includes('public class')) return 'java';
+  if (code.includes('<?php')) return 'php';
+  if (code.includes('package main')) return 'go';
+  if (code.includes('fn ')) return 'rust';
+  if (code.includes('using System;')) return 'csharp';
+  return 'plaintext';
+};
+
+// Helper function to extract code from text
+const extractCode = (text) => {
+  // Look for code blocks in markdown format
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  const matches = [...text.matchAll(codeBlockRegex)];
+  
+  if (matches.length > 0) {
+    return matches.map(match => ({
+      language: match[1] || detectLanguage(match[2]),
+      code: match[2].trim()
+    }));
+  }
+  
+  // If no code blocks found, try to detect if the entire text is code
+  if (text.includes('{') || text.includes(';') || text.includes('function') || text.includes('def ')) {
+    return [{
+      language: detectLanguage(text),
+      code: text.trim()
+    }];
+  }
+  
+  return null;
+};
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([]);
@@ -17,6 +56,7 @@ export default function ChatPage() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  const [codeBlocks, setCodeBlocks] = useState([]);
 
   // New function to start a fresh chat session (frontend state only)
   const startNewChatSession = () => {
@@ -103,7 +143,7 @@ export default function ChatPage() {
     if (!newMessage.trim() && !selectedFile) return;
     
     try {
-      setIsLoading(true); // Start loading state immediately
+      setIsLoading(true);
       setError(null);
 
       const messageToSend = newMessage;
@@ -144,14 +184,12 @@ export default function ChatPage() {
         }
         formData.append('file', fileToSend);
         bodyContent = formData;
-        // Don't set Content-Type header manually for FormData
       } else {
         headers['Content-Type'] = 'application/json';
         bodyContent = JSON.stringify({ message: messageToSend });
       }
 
       if (!currentChatId) {
-        // This is the first message in a new chat, create chat with this message
         const response = await fetch(`${API_URL}`, {
           method: 'POST',
           headers: headers,
@@ -164,10 +202,9 @@ export default function ChatPage() {
         }
 
         chatData = await response.json();
-        setCurrentChatId(chatData._id); // Set the new chat ID
-        await loadChatHistory(); // Reload sidebar with new chat
+        setCurrentChatId(chatData._id);
+        await loadChatHistory();
       } else {
-        // Subsequent message in an existing chat
         const response = await fetch(`${API_URL}/${currentChatId}/message`, {
           method: 'POST',
           headers: headers,
@@ -181,17 +218,19 @@ export default function ChatPage() {
         chatData = await response.json();
       }
 
-      console.log('Chat response:', chatData); // Debug log
-      
-      // Update messages with the complete chat history from the server
+      // Process code blocks in the response
+      const extractedCode = extractCode(chatData.messages[chatData.messages.length - 1].content);
+      if (extractedCode) {
+        setCodeBlocks(extractedCode);
+      }
+
       setMessages(chatData.messages || []);
       setError(null);
 
     } catch (error) {
       console.error('Error sending message:', error);
       setError(error.message);
-      // Restore message if error occurs (especially if new chat creation failed)
-      if (!currentChatId) { // If currentChatId is null, it means new chat creation failed
+      if (!currentChatId) {
         setNewMessage(messageToSend);
         setSelectedFile(fileToSend);
       }
@@ -434,6 +473,33 @@ export default function ChatPage() {
           {/* Messages Area - Scrollable */}
           <div className="flex-1 overflow-y-auto mb-3 sm:mb-6" onClick={() => setSidebarOpen(false)}>
             <MessageDisplay messages={messages} error={error} />
+            
+            {/* Code Blocks Display */}
+            {codeBlocks.length > 0 && (
+              <div className="mt-4 space-y-4">
+                {codeBlocks.map((block, index) => (
+                  <div key={index} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                    <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+                      <div className="flex items-center space-x-2">
+                        <Code className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-medium text-gray-300">{block.language}</span>
+                      </div>
+                    </div>
+                    <SyntaxHighlighter
+                      language={block.language}
+                      style={vscDarkPlus}
+                      customStyle={{
+                        margin: 0,
+                        borderRadius: 0,
+                        padding: '1rem'
+                      }}
+                    >
+                      {block.code}
+                    </SyntaxHighlighter>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Input Section - Fixed at bottom */}
