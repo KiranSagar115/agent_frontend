@@ -56,7 +56,6 @@ export default function ChatPage() {
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
-  const [codeBlocks, setCodeBlocks] = useState([]);
 
   // New function to start a fresh chat session (frontend state only)
   const startNewChatSession = () => {
@@ -179,7 +178,8 @@ export default function ChatPage() {
 
       if (selectedFile) {
         const formData = new FormData();
-        if (messageToSend) {
+        // Only append message if it exists and is not just whitespace
+        if (messageToSend.trim()) {
           formData.append('message', messageToSend);
         }
         formData.append('file', fileToSend);
@@ -216,12 +216,6 @@ export default function ChatPage() {
           throw new Error(errorData.message || 'Failed to send message');
         }
         chatData = await response.json();
-      }
-
-      // Process code blocks in the response
-      const extractedCode = extractCode(chatData.messages[chatData.messages.length - 1].content);
-      if (extractedCode) {
-        setCodeBlocks(extractedCode);
       }
 
       setMessages(chatData.messages || []);
@@ -473,33 +467,6 @@ export default function ChatPage() {
           {/* Messages Area - Scrollable */}
           <div className="flex-1 overflow-y-auto mb-3 sm:mb-6" onClick={() => setSidebarOpen(false)}>
             <MessageDisplay messages={messages} error={error} />
-            
-            {/* Code Blocks Display */}
-            {codeBlocks.length > 0 && (
-              <div className="mt-4 space-y-4">
-                {codeBlocks.map((block, index) => (
-                  <div key={index} className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
-                    <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-                      <div className="flex items-center space-x-2">
-                        <Code className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm font-medium text-gray-300">{block.language}</span>
-                      </div>
-                    </div>
-                    <SyntaxHighlighter
-                      language={block.language}
-                      style={vscDarkPlus}
-                      customStyle={{
-                        margin: 0,
-                        borderRadius: 0,
-                        padding: '1rem'
-                      }}
-                    >
-                      {block.code}
-                    </SyntaxHighlighter>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Input Section - Fixed at bottom */}
