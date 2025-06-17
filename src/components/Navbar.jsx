@@ -1,10 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Home, MessageCircle, GraduationCap, Zap, UserCircle, Power, Sparkles } from 'lucide-react';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const location = useLocation(); // Get current location to determine active link
+  const user = JSON.parse(localStorage.getItem('user')); // Get user from localStorage
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -24,59 +25,83 @@ export default function Navbar() {
         <div className="relative px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo and Brand */}
-            {/* <Link to={user ? "/dashboard" : "/auth"} className="group flex items-center space-x-3"> */}
+            <Link to={user ? "/dashboard" : "/auth"} className="group flex items-center space-x-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur-md opacity-30 group-hover:opacity-50 transition-all duration-300"></div>
                 <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl shadow-lg transform group-hover:scale-105 transition-all duration-300">
-                    <Sparkles className="w-6 h-6 text-white animate-pulse" />
-                  </div>
+                  <Sparkles className="w-6 h-6 text-white animate-pulse" />
                 </div>
+              </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent group-hover:from-blue-500 group-hover:via-purple-500 group-hover:to-pink-500 transition-all duration-300">
                 AIgentLearn
               </span>
-            {/* </Link> */}
+            </Link>
 
             {/* Navigation Links - Only show when logged in */}
             {user && (
               <div className="hidden md:flex items-center space-x-2">
                 <Link
                   to="/dashboard"
-                  className="group relative flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-700 hover:text-blue-600 transition-all duration-300 hover:bg-blue-50/50"
+                  className={`group relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+                    ${location.pathname === '/dashboard' ? 'text-blue-600 bg-blue-50/50 shadow-md' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50/50'}
+                  `}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <Home className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                  {location.pathname === '/dashboard' && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl animate-pulse"></div>
+                  )}
+                  <Home className={`w-5 h-5 relative z-10 transition-transform duration-300 ${location.pathname === '/dashboard' ? 'scale-110' : 'group-hover:scale-110'}`} />
                   <span className="relative z-10 font-medium">Home</span>
-                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full group-hover:left-0 transition-all duration-300"></div>
+                  {location.pathname === '/dashboard' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                  )}
                 </Link>
                 
                 <Link
                   to="/chat"
-                  className="group relative flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-700 hover:text-green-600 transition-all duration-300 hover:bg-green-50/50"
+                  className={`group relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+                    ${location.pathname === '/chat' ? 'text-green-600 bg-green-50/50 shadow-md' : 'text-gray-700 hover:text-green-600 hover:bg-green-50/50'}
+                  `}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <MessageCircle className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                  {location.pathname === '/chat' && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl animate-pulse"></div>
+                  )}
+                  <MessageCircle className={`w-5 h-5 relative z-10 transition-transform duration-300 ${location.pathname === '/chat' ? 'scale-110' : 'group-hover:scale-110'}`} />
                   <span className="relative z-10 font-medium">Chat</span>
-                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 group-hover:w-full group-hover:left-0 transition-all duration-300"></div>
+                  {location.pathname === '/chat' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full animate-pulse"></div>
+                  )}
                 </Link>
                 
                 <Link
                   to="/learn"
-                  className="group relative flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-700 hover:text-purple-600 transition-all duration-300 hover:bg-purple-50/50"
+                  className={`group relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+                    ${location.pathname === '/learn' ? 'text-purple-600 bg-purple-50/50 shadow-md' : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50/50'}
+                  `}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <GraduationCap className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                  {location.pathname === '/learn' && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl animate-pulse"></div>
+                  )}
+                  <GraduationCap className={`w-5 h-5 relative z-10 transition-transform duration-300 ${location.pathname === '/learn' ? 'scale-110' : 'group-hover:scale-110'}`} />
                   <span className="relative z-10 font-medium">Learn</span>
-                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full group-hover:left-0 transition-all duration-300"></div>
+                  {location.pathname === '/learn' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-pulse"></div>
+                  )}
                 </Link>
                 
                 <Link
                   to="/problems"
-                  className="group relative flex items-center space-x-2 px-4 py-2 rounded-xl text-gray-700 hover:text-orange-600 transition-all duration-300 hover:bg-orange-50/50"
+                  className={`group relative flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300 
+                    ${location.pathname === '/problems' ? 'text-orange-600 bg-orange-50/50 shadow-md' : 'text-gray-700 hover:text-orange-600 hover:bg-orange-50/50'}
+                  `}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <Zap className="w-5 h-5 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+                  {location.pathname === '/problems' && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-xl animate-pulse"></div>
+                  )}
+                  <Zap className={`w-5 h-5 relative z-10 transition-transform duration-300 ${location.pathname === '/problems' ? 'scale-110' : 'group-hover:scale-110'}`} />
                   <span className="relative z-10 font-medium">DebugBattle</span>
-                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-orange-500 to-red-500 group-hover:w-full group-hover:left-0 transition-all duration-300"></div>
+                  {location.pathname === '/problems' && (
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse"></div>
+                  )}
                 </Link>
               </div>
             )}
