@@ -203,11 +203,10 @@ export default function ChatPage() {
         chatData = await response.json();
         setCurrentChatId(chatData._id);
         
-        // REMOVED: Automatic title update after creating new chat
-        // The title will be generated automatically in the backend
-        
-        // Just reload chat history to get the updated title
+        // The backend already handles title generation after the first AI response.
+        // We just need to load the history to reflect the title set by the backend.
         await loadChatHistory();
+
       } else {
         const response = await fetch(`${API_URL}/${currentChatId}/message`, {
           method: 'POST',
@@ -221,6 +220,9 @@ export default function ChatPage() {
         }
 
         chatData = await response.json();
+        // After sending a subsequent message, the title might be updated on the backend
+        // (e.g., if the user edits it), so we still need to reload history here.
+        await loadChatHistory(); // This ensures sidebar updates with any title changes
       }
 
       // Update messages with AI response
