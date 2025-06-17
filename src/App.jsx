@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import Navbar from './components/Navbar';
@@ -13,6 +13,26 @@ function AppContent() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/auth';
   const isAuthenticated = !!localStorage.getItem('token');
+
+  useEffect(() => {
+    const checkSessionExpiry = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0);
+      
+      if (now >= midnight && isAuthenticated) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/auth';
+      }
+    };
+
+    // Check session expiry every minute
+    const interval = setInterval(checkSessionExpiry, 60000);
+    checkSessionExpiry(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">

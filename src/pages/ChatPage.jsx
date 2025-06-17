@@ -178,7 +178,6 @@ export default function ChatPage() {
 
       if (selectedFile) {
         const formData = new FormData();
-        // Only append message if it exists and is not just whitespace
         if (messageToSend.trim()) {
           formData.append('message', messageToSend);
         }
@@ -203,6 +202,11 @@ export default function ChatPage() {
 
         chatData = await response.json();
         setCurrentChatId(chatData._id);
+        
+        // REMOVED: Automatic title update after creating new chat
+        // The title will be generated automatically in the backend
+        
+        // Just reload chat history to get the updated title
         await loadChatHistory();
       } else {
         const response = await fetch(`${API_URL}/${currentChatId}/message`, {
@@ -215,19 +219,17 @@ export default function ChatPage() {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to send message');
         }
+
         chatData = await response.json();
       }
 
-      setMessages(chatData.messages || []);
-      setError(null);
-
+      // Update messages with AI response
+      if (chatData.messages) {
+        setMessages(chatData.messages);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setError(error.message);
-      if (!currentChatId) {
-        setNewMessage(messageToSend);
-        setSelectedFile(fileToSend);
-      }
     } finally {
       setIsLoading(false);
       focusTextarea();
