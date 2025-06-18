@@ -380,6 +380,81 @@ const RainbowLoader = ({ size = 'default' }) => {
   );
 };
 
+const TopicModal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 50;
+  padding: 2rem;
+  padding-top: 6rem;
+  overflow-y: auto;
+
+  .modal-content {
+    background: rgba(198, 160, 207, 0.79);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    max-width: 1200px;
+    width: 100%;
+    min-height: calc(100vh - 8rem);
+    padding: 2rem;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    margin: 2rem auto;
+  }
+
+  .close-button {
+    position: fixed;
+    top: 7rem;
+    right: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 60;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.05);
+    }
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1.5rem;
+    padding-right: 3rem;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  strong {
+    font-weight: 600;
+    color: white;
+  }
+
+  scroll-behavior: smooth;
+`;
+
 export default function LearnPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchHistory, setSearchHistory] = useState([]);
@@ -498,9 +573,12 @@ export default function LearnPage() {
     setShowTopicModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowTopicModal(false);
-    setCurrentTopic(null);
+  const handleCloseModal = (e) => {
+    // Only close if clicking the backdrop or close button
+    if (e.target === e.currentTarget || e.target.closest('.close-button')) {
+      setShowTopicModal(false);
+      setCurrentTopic(null);
+    }
   };
 
   const handleCopyCode = (code, index) => {
@@ -671,39 +749,34 @@ export default function LearnPage() {
 
           {/* Topic Modal */}
           {showTopicModal && currentTopic && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl border border-white/10 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center">
-                      {getLanguageIcon(currentTopic.topicTitle, currentTopic.codeSnippets) && (
-                        <img
-                          src={getLanguageIcon(currentTopic.topicTitle, currentTopic.codeSnippets)}
-                          alt="language icon"
-                          className="w-8 h-8 mr-3"
-                        />
-                      )}
-                      <h2 className="text-2xl font-bold text-white">{currentTopic.topicTitle}</h2>
-                    </div>
-                    <button
-                      onClick={handleCloseModal}
-                      className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                  <div className="prose prose-invert max-w-none">
-                    <ReactMarkdown
-                      components={{
-                        code: renderCodeBlock
-                      }}
-                    >
-                      {currentTopic.content}
-                    </ReactMarkdown>
-                  </div>
+            <TopicModal onClick={handleCloseModal}>
+              <div className="modal-content">
+                <button className="close-button" onClick={handleCloseModal}>
+                  <X size={20} />
+                </button>
+                <div className="flex items-center mb-6">
+                  {getLanguageIcon(currentTopic.topicTitle, currentTopic.codeSnippets) && (
+                    <img
+                      src={getLanguageIcon(currentTopic.topicTitle, currentTopic.codeSnippets)}
+                      alt="language icon"
+                      className="w-8 h-8 mr-3"
+                    />
+                  )}
+                  <h2>{currentTopic.topicTitle}</h2>
+                </div>
+                <div className="prose prose-invert max-w-none">
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p>{children}</p>,
+                      strong: ({ children }) => <strong>{children}</strong>,
+                      code: renderCodeBlock
+                    }}
+                  >
+                    {currentTopic.content}
+                  </ReactMarkdown>
                 </div>
               </div>
-            </div>
+            </TopicModal>
           )}
         </div>
       </div>

@@ -766,13 +766,13 @@ export default function ChatPage() {
         />
       )}
 
-      {/* Main Content - Fixed Layout Structure */}
-      <div className="flex flex-col h-screen relative z-10">
+      {/* Main Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top margin for navbar */}
         <div className="h-16 flex-shrink-0"></div>
         
-        {/* Header - Fixed */}
-        <div className="flex items-center justify-between p-4 sm:p-6 flex-shrink-0">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 sm:p-6 flex-shrink-0 sticky top-0 ">
           <div className="flex items-center gap-4">
             <button
               onClick={(e) => {
@@ -801,7 +801,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Error Message - Fixed */}
+        {/* Error Message */}
         {error && (
           <div className="mx-auto max-w-5xl w-full px-4 sm:px-6 mb-4 flex-shrink-0">
             <div className="bg-gradient-to-r from-red-500/20 to-pink-500/20 backdrop-blur-sm border border-red-400/30 text-red-100 p-4 rounded-2xl shadow-lg animate-in slide-in-from-top-2 duration-300">
@@ -813,140 +813,75 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Chat Content Area - Flexible */}
-        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 sm:px-6 min-h-0">
-          {/* Messages Area - Scrollable */}
-          <div className="flex-1 overflow-y-auto mb-6 custom-scrollbar" onClick={() => setSidebarOpen(false)}>
+        {/* Chat Content Area */}
+        <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 sm:px-6">
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto py-8">
             <MessageDisplay messages={messages} error={error} />
           </div>
 
-          {/* Input Section - Fixed at bottom */}
-          <div className="flex-shrink-0 pb-6">
-            {/* File Preview */}
-            {selectedFile && (
-              <div className="mb-4 p-4 bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl animate-in slide-in-from-bottom-2 duration-300">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="p-2 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-lg">
-                      <Paperclip size={14} className="text-cyan-300" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <span className="text-white font-medium text-sm block truncate">{selectedFile.name}</span>
-                      <span className="text-white/60 text-xs">
-                        {(selectedFile.size / 1024).toFixed(1)} KB
+          {/* Input Area */}
+          <div className="flex-shrink-0 py-4">
+            <form onSubmit={handleSendMessage} className="relative">
+              <div className="relative">
+                <textarea
+                  ref={textareaRef}
+                  value={newMessage}
+                  onChange={handleTextareaChange}
+                  onKeyPress={handleKeyPress}
+                  onPaste={handlePaste}
+                  placeholder="Type your message..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-4 pr-24 text-white placeholder-white/50 focus:outline-none focus:border-violet-500/50 transition-colors resize-none min-h-[60px] max-h-[200px]"
+                  style={{ height: 'auto' }}
+                  disabled={isLoading}
+                />
+                <div className="absolute right-4 bottom-4 flex items-center gap-2">
+                  {selectedFile && (
+                    <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1">
+                      <span className="text-sm text-white/80 truncate max-w-[100px]">
+                        {selectedFile.name}
                       </span>
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="text-white/60 hover:text-white"
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
-                  </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    accept="image/*"
+                  />
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile();
-                    }}
-                    className="text-white/60 hover:text-red-400 transition-all duration-200 p-2 hover:bg-red-500/10 rounded-lg hover:scale-110"
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                    disabled={isLoading}
                   >
-                    <X size={16} />
+                    <Paperclip size={20} />
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading || (!newMessage.trim() && !selectedFile)}
+                    className="p-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {isLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      <Send size={20} />
+                    )}
                   </button>
                 </div>
-                {selectedFile.type.startsWith('image/') && (
-                  <div className="mt-3">
-                    <img
-                      src={URL.createObjectURL(selectedFile)}
-                      alt="Preview"
-                      className="max-w-full sm:max-w-xs max-h-32 object-contain rounded-xl border border-white/20 shadow-lg"
-                    />
-                  </div>
-                )}
               </div>
-            )}
-
-            {/* Message Input Bar */}
-            <div className="relative group" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-end gap-3 bg-gradient-to-r from-white/15 to-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-4 shadow-2xl transition-all duration-300 group-focus-within:border-violet-400/50 group-focus-within:shadow-violet-500/20">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileSelect}
-                  className="hidden"
-                  accept="image/*"
-                />
-                
-                {/* File Upload Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    fileInputRef.current?.click();
-                  }}
-                  className="group/btn p-3 text-white/70 hover:text-cyan-300 hover:bg-cyan-500/15 rounded-xl transition-all duration-300 flex-shrink-0 hover:scale-110 border border-transparent hover:border-cyan-400/30"
-                  title="Attach file"
-                >
-                  <Paperclip size={18} className="group-hover/btn:rotate-12 transition-transform duration-300" />
-                </button>
-
-                {/* Text Input */}
-                <div className="flex-1 relative">
-                  <textarea
-                    ref={textareaRef}
-                    value={newMessage}
-                    onChange={handleTextareaChange}
-                    onPaste={handlePaste}
-                    onKeyPress={handleKeyPress}
-                    onClick={(e) => e.stopPropagation()}
-                    placeholder="Type your message..."
-                    className="w-full bg-transparent text-white placeholder-white/50 focus:outline-none resize-none min-h-[24px] max-h-[120px] py-2 px-0 leading-6 text-base transition-all duration-300"
-                    disabled={isLoading}
-                    rows={1}
-                    autoFocus
-                  />
-                  
-                  {/* Animated focus indicator */}
-                  <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/20 to-cyan-600/20 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 -z-10 blur-sm"></div>
-                </div>
-
-                {/* Send Button */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSendMessage(e);
-                  }}
-                  disabled={isLoading || (!newMessage.trim() && !selectedFile)}
-                  className="group/send p-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 disabled:from-gray-600/50 disabled:to-gray-700/50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-300 flex-shrink-0 shadow-lg hover:shadow-violet-500/30 disabled:shadow-none hover:scale-110 disabled:hover:scale-100"
-                  title="Send message"
-                >
-                  {isLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <Send size={18} className="group-hover/send:translate-x-0.5 group-hover/send:-translate-y-0.5 transition-transform duration-300" />
-                  )}
-                </button>
-              </div>
-              
-              {/* Enhanced glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-cyan-500/10 rounded-2xl blur-xl -z-10 opacity-50 group-focus-within:opacity-100 transition-opacity duration-300"></div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
-
-      <style>
-        {`
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(139, 92, 246, 0.5);
-            border-radius: 3px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 92, 246, 0.7);
-          }
-        `}
-      </style>
     </div>
   );
 }
