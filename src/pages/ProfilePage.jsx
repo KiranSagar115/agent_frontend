@@ -20,7 +20,7 @@ export default function ProfilePage() {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          navigate('/auth');
+          navigate('/');
           return;
         }
 
@@ -39,7 +39,7 @@ export default function ProfilePage() {
       } catch (error) {
         console.error('Error fetching user data:', error);
         if (error.response?.status === 401) {
-          navigate('/auth');
+          navigate('/');
         }
       } finally {
         setIsLoading(false);
@@ -49,10 +49,24 @@ export default function ProfilePage() {
     fetchUserData();
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/auth');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+    }
   };
 
   if (isLoading) {

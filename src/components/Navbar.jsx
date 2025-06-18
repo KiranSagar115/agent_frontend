@@ -7,10 +7,24 @@ export default function Navbar() {
   const location = useLocation(); // Get current location to determine active link
   const user = JSON.parse(localStorage.getItem('user')); // Get user from localStorage
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/auth', { replace: true });
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -147,7 +161,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <Link
-                  to="/auth"
+                  to="/"
                   className="group relative flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 hover:from-blue-400 hover:to-purple-400"
                 >
                   <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 animate-pulse rounded-xl"></div>

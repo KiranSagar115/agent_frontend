@@ -1,6 +1,14 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
+import ProtectedRoute from './components/ProtectedRoute';
+
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
@@ -11,73 +19,63 @@ import AuthPage from './pages/AuthPage';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/auth';
-  const isAuthenticated = !!localStorage.getItem('token');
-
-  useEffect(() => {
-    const checkSessionExpiry = () => {
-      const now = new Date();
-      const midnight = new Date();
-      midnight.setHours(24, 0, 0, 0);
-      
-      if (now >= midnight && isAuthenticated) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/auth';
-      }
-    };
-
-    // Check session expiry every minute
-    const interval = setInterval(checkSessionExpiry, 60000);
-    checkSessionExpiry(); // Initial check
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+  const token = localStorage.getItem('token');
+  const isAuthenticated = Boolean(token);
+  const isAuthPage = location.pathname === '/';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
       {!isAuthPage && <Navbar />}
+
       <Routes>
         <Route
           path="/"
-          element={<Navigate to="/auth" replace />}
-        />
-        <Route
-          path="/dashboard"
-          element={
-            isAuthenticated ? <HomePage /> : <Navigate to="/auth" replace />
-          }
-        />
-        <Route
-          path="/auth"
           element={
             isAuthenticated ? <Navigate to="/dashboard" replace /> : <AuthPage />
           }
         />
         <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/chat"
           element={
-            isAuthenticated ? <ChatPage /> : <Navigate to="/auth" replace />
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/learn"
           element={
-            isAuthenticated ? <LearnPage /> : <Navigate to="/auth" replace />
+            <ProtectedRoute>
+              <LearnPage />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/problems"
           element={
-            isAuthenticated ? <ProblemsPage /> : <Navigate to="/auth" replace />
+            <ProtectedRoute>
+              <ProblemsPage />
+            </ProtectedRoute>
           }
         />
         <Route
           path="/profile"
           element={
-            isAuthenticated ? <ProfilePage /> : <Navigate to="/auth" replace />
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
           }
         />
+        {/* Catch all unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );
