@@ -178,19 +178,40 @@ const MessageDisplay = ({ messages, error }) => {
   };
 
   const renderMessageContent = (content) => {
-    // Simple markdown-like parsing for code blocks
+    // Simple markdown-like parsing for code blocks and bold text
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const boldRegex = /\*\*(.*?)\*\*/g;
     const parts = [];
     let lastIndex = 0;
     let match;
 
+    // First handle code blocks
     while ((match = codeBlockRegex.exec(content)) !== null) {
       // Add text before code block
       if (match.index > lastIndex) {
-        parts.push({
-          type: 'text',
-          content: content.slice(lastIndex, match.index)
-        });
+        const textBefore = content.slice(lastIndex, match.index);
+        // Process bold text in the text before code block
+        let boldLastIndex = 0;
+        let boldMatch;
+        while ((boldMatch = boldRegex.exec(textBefore)) !== null) {
+          if (boldMatch.index > boldLastIndex) {
+            parts.push({
+              type: 'text',
+              content: textBefore.slice(boldLastIndex, boldMatch.index)
+            });
+          }
+          parts.push({
+            type: 'bold',
+            content: boldMatch[1]
+          });
+          boldLastIndex = boldMatch.index + boldMatch[0].length;
+        }
+        if (boldLastIndex < textBefore.length) {
+          parts.push({
+            type: 'text',
+            content: textBefore.slice(boldLastIndex)
+          });
+        }
       }
       
       // Add code block
@@ -203,15 +224,33 @@ const MessageDisplay = ({ messages, error }) => {
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text
+    // Process remaining text for bold
     if (lastIndex < content.length) {
-      parts.push({
-        type: 'text',
-        content: content.slice(lastIndex)
-      });
+      const remainingText = content.slice(lastIndex);
+      let boldLastIndex = 0;
+      let boldMatch;
+      while ((boldMatch = boldRegex.exec(remainingText)) !== null) {
+        if (boldMatch.index > boldLastIndex) {
+          parts.push({
+            type: 'text',
+            content: remainingText.slice(boldLastIndex, boldMatch.index)
+          });
+        }
+        parts.push({
+          type: 'bold',
+          content: boldMatch[1]
+        });
+        boldLastIndex = boldMatch.index + boldMatch[0].length;
+      }
+      if (boldLastIndex < remainingText.length) {
+        parts.push({
+          type: 'text',
+          content: remainingText.slice(boldLastIndex)
+        });
+      }
     }
 
-    // If no code blocks found, return as text
+    // If no parts found, return as text
     if (parts.length === 0) {
       return <div className="whitespace-pre-wrap">{content}</div>;
     }
@@ -222,6 +261,8 @@ const MessageDisplay = ({ messages, error }) => {
           <div key={index}>
             {part.type === 'text' ? (
               <div className="whitespace-pre-wrap">{part.content}</div>
+            ) : part.type === 'bold' ? (
+              <strong className="font-semibold text-white">{part.content}</strong>
             ) : (
               renderCodeBlock(part.content, part.language)
             )}
@@ -273,11 +314,11 @@ const MessageDisplay = ({ messages, error }) => {
                 <div className="text-white text-sm leading-relaxed">
                   {renderMessageContent(message.content)}
                 </div>
-                {message.timestamp && (
+                {/* {message.timestamp && (
                   <div className="text-xs text-white/50 mt-2">
                     {new Date(message.timestamp).toLocaleTimeString()}
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           </div>

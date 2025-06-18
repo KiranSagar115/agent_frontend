@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   Home, MessageCircle, GraduationCap, Bug, 
   Brain, Code, Users, Trophy, Target, 
@@ -8,11 +9,7 @@ import {
 } from 'lucide-react';
 
 const HomePage = () => {
-  // Mock navigation function for demo
-  const navigate = (path) => {
-    console.log(`Navigating to: ${path}`);
-    alert(`Would navigate to: ${path}`);
-  };
+  const navigate = useNavigate();
 
   const stats = [
     { label: 'Active Learners', value: '10K+', icon: Users, color: 'from-violet-400 to-purple-400' },
@@ -110,60 +107,12 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 relative overflow-hidden bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-      {/* Enhanced animated background elements */}
+    <div className="min-h-screen pt-20 relative overflow-hidden bg-gradient-to-br from-slate-900 via-violet-900 to-cyan-900">
+      {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        {/* Floating orbs */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.6, 0.3],
-            rotate: [0, 180, 360]
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-violet-400/30 to-purple-400/30 rounded-full blur-3xl"
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1.2, 1, 1.2],
-            opacity: [0.4, 0.7, 0.4],
-            rotate: [360, 180, 0]
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-pink-400/30 to-violet-400/30 rounded-full blur-3xl"
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.5, 0.2],
-            x: [-20, 20, -20]
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-          className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"
-        />
-        
-        {/* Particles */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [-20, -100, -20],
-              opacity: [0, 0.8, 0],
-              scale: [0, 1, 0]
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: "easeOut"
-            }}
-          />
-        ))}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-pink-400/10 to-purple-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-cyan-400/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-emerald-400/5 to-teal-600/5 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <motion.div 
@@ -206,14 +155,14 @@ const HomePage = () => {
           
           <motion.p 
             variants={itemVariants}
-            className="text-purple-100 text-2xl max-w-4xl mx-auto mb-6 leading-relaxed"
+            className="text-white/80 text-2xl max-w-4xl mx-auto mb-6 leading-relaxed"
           >
             Master programming through AI-powered learning, interactive debugging, and personalized guidance
           </motion.p>
 
           <motion.p 
             variants={itemVariants}
-            className="text-purple-200 text-lg max-w-3xl mx-auto mb-10"
+            className="text-white/60 text-lg max-w-3xl mx-auto mb-10"
           >
             From code debugging to algorithmic challenges, our platform adapts to your learning pace and style
           </motion.p>
@@ -248,343 +197,119 @@ const HomePage = () => {
             <motion.button
               whileHover={{ 
                 scale: 1.05,
-                color: "#c084fc"
+                boxShadow: "0 0 30px rgba(139, 92, 246, 0.6)"
               }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/debug-battle')}
-              className="group flex items-center space-x-2 text-purple-300 hover:text-pink-300 transition-all duration-300 font-semibold text-lg"
+              onClick={() => navigate('/learn')}
+              className="group relative overflow-hidden bg-gradient-to-r from-cyan-500 via-blue-500 to-violet-500 text-white px-10 py-4 rounded-2xl font-semibold text-lg shadow-2xl hover:shadow-cyan-500/50 transition-all duration-300"
             >
               <motion.div 
-                whileHover={{ scale: 1.2, rotate: 90 }} 
+                className="absolute inset-0 bg-gradient-to-r from-cyan-600 via-blue-600 to-violet-600"
+                initial={{ x: "-100%" }}
+                whileHover={{ x: "0%" }}
                 transition={{ duration: 0.3 }}
-              >
-                <Play className="w-5 h-5" />
-              </motion.div>
-              <span>Try Debug Battle</span>
-              <motion.div
-                whileHover={{ x: 5 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ArrowRight className="w-4 h-4" />
-              </motion.div>
+              />
+              <div className="relative flex items-center space-x-2">
+                <motion.div whileHover={{ rotate: 360 }} transition={{ duration: 0.5 }}>
+                  <GraduationCap className="w-5 h-5" />
+                </motion.div>
+                <span>Start Learning</span>
+              </div>
             </motion.button>
           </motion.div>
         </motion.div>
 
         {/* Stats Section */}
-        {/* <motion.div 
-          variants={containerVariants}
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto mb-20"
-        >
-          {stats.map((stat, index) => {
-            const IconComponent = stat.icon;
-            return (
-              <motion.div 
-                key={index}
-                variants={itemVariants}
-                whileHover={{ 
-                  scale: 1.05,
-                  y: -10,
-                  boxShadow: "0 20px 40px rgba(139, 92, 246, 0.3)"
-                }}
-                className="group relative bg-white/10 backdrop-blur-xl p-6 rounded-2xl shadow-lg border border-white/20 text-center overflow-hidden"
-              >
-                <motion.div 
-                  className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-10`}
-                  whileHover={{ opacity: 0.2 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <div className="relative z-10">
-                  <motion.div 
-                    whileHover={{ 
-                      scale: 1.1,
-                      rotate: 360 
-                    }}
-                    transition={{ duration: 0.5 }}
-                    className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.color} mb-3 shadow-lg`}
-                  >
-                    <IconComponent className="w-6 h-6 text-white" />
-                  </motion.div>
-                  <motion.div 
-                    animate={{ 
-                      textShadow: [
-                        "0 0 5px rgba(139, 92, 246, 0.5)",
-                        "0 0 20px rgba(139, 92, 246, 0.8)",
-                        "0 0 5px rgba(139, 92, 246, 0.5)"
-                      ]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-1`}
-                  >
-                    {stat.value}
-                  </motion.div>
-                  <div className="text-purple-200 text-sm font-medium">{stat.label}</div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div> */}
-
-        {/* Main Features */}
         <motion.div 
-          variants={containerVariants}
-          className="mb-20"
-        >
-          <motion.div variants={itemVariants} className="text-center mb-12">
-            <motion.h2 
-              animate={{ 
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="text-4xl font-bold bg-gradient-to-r from-violet-400 via-pink-400 to-purple-400 bg-300% bg-clip-text text-transparent mb-4"
-              style={{ backgroundSize: "300% 100%" }}
-            >
-              Complete Learning Ecosystem
-            </motion.h2>
-            <p className="text-purple-200 text-lg max-w-2xl mx-auto">
-              Three integrated modules designed to take you from beginner to expert
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {features.map((feature, index) => (
-              <FeatureCard key={index} {...feature} delay={index * 0.1} />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Learning Paths */}
-        <motion.div
-          variants={containerVariants}
-          className="mb-20"
-        >
-          <motion.div variants={itemVariants} className="text-center mb-12">
-            <motion.h2 
-              animate={{ 
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-              }}
-              transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-              className="text-4xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-violet-400 bg-300% bg-clip-text text-transparent mb-4"
-              style={{ backgroundSize: "300% 100%" }}
-            >
-              Choose Your Learning Path
-            </motion.h2>
-            <p className="text-purple-200 text-lg max-w-2xl mx-auto">
-              Structured pathways tailored to different skill levels and goals
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {learningPaths.map((path, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                whileHover={{ 
-                  scale: 1.03,
-                  y: -10,
-                  boxShadow: "0 25px 50px rgba(139, 92, 246, 0.4)"
-                }}
-                className="group bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-lg border border-white/20 hover:border-purple-400/50 transition-all duration-300"
-              >
-                <motion.div 
-                  whileHover={{ 
-                    scale: 1.1,
-                    rotate: 360 
-                  }}
-                  transition={{ duration: 0.6 }}
-                  className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${path.color} mb-6 shadow-lg`}
-                >
-                  <div className="text-white">{path.icon}</div>
-                </motion.div>
-                
-                <h3 className={`text-2xl font-bold mb-2 bg-gradient-to-r ${path.color} bg-clip-text text-transparent`}>
-                  {path.title}
-                </h3>
-                
-                <p className="text-purple-200 mb-6">{path.description}</p>
-                
-                <div className="space-y-2">
-                  {path.topics.map((topic, i) => (
-                    <motion.div 
-                      key={i} 
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 * i }}
-                      className="flex items-center space-x-2 text-sm text-purple-100"
-                    >
-                      <motion.div whileHover={{ scale: 1.2 }}>
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                      </motion.div>
-                      <span>{topic}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* CTA Section */}
-        <motion.div
           variants={itemVariants}
-          whileHover={{ scale: 1.02 }}
-          className="text-center bg-white/10 backdrop-blur-xl p-12 rounded-3xl shadow-2xl border border-white/20 relative overflow-hidden"
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20"
         >
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.3, 0.1]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute inset-0 bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl"
-          />
-          
-          <div className="max-w-3xl mx-auto relative z-10">
-            <motion.h2 
-              animate={{ 
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-              }}
-              transition={{ duration: 5, repeat: Infinity }}
-              className="text-4xl font-bold bg-gradient-to-r from-violet-400 via-purple-400 to-pink-400 bg-300% bg-clip-text text-transparent mb-6"
-              style={{ backgroundSize: "300% 100%" }}
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.label}
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              className="group bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-violet-400/30 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300"
             >
-              Ready to Transform Your Coding Journey?
-            </motion.h2>
-            <p className="text-purple-100 text-lg mb-8">
-              Join thousands of developers who are mastering programming through our AI-powered platform
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${stat.color} flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-300`}>
+                <stat.icon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-white/60 text-sm">{stat.label}</p>
+                <p className="text-2xl font-bold text-white">{stat.value}</p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Features Section */}
+        <motion.div 
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20"
+        >
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              className="group bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-violet-400/30 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300"
+            >
+              <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
+              <p className="text-white/60 mb-6">{feature.description}</p>
+              <div className="space-y-2">
+                {feature.highlights.map((highlight, i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-400" />
+                    <span className="text-white/80">{highlight}</span>
+                  </div>
+                ))}
+              </div>
               <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 0 40px rgba(139, 92, 246, 0.7)"
-                }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/chat')}
-                className="group relative overflow-hidden bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg transition-all duration-300"
+                onClick={() => navigate(feature.route)}
+                className="mt-6 group flex items-center space-x-2 text-white/60 hover:text-white transition-colors duration-300"
               >
-                <div className="relative flex items-center justify-center space-x-2">
-                  <motion.div 
-                    whileHover={{ 
-                      y: [0, -5, 0],
-                      transition: { duration: 0.5, repeat: Infinity }
-                    }}
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                  </motion.div>
-                  <span>Start Chatting</span>
-                </div>
+                <span>Learn More</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
               </motion.button>
-              
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  borderColor: "#c084fc",
-                  backgroundColor: "rgba(192, 132, 252, 0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/learn')}
-                className="group flex items-center justify-center space-x-2 text-purple-300 hover:text-pink-300 transition-all duration-300 font-semibold px-8 py-4 rounded-2xl border-2 border-purple-400/50 hover:border-pink-400/50"
-              >
-                <motion.div whileHover={{ rotate: 360 }} transition={{ duration: 0.5 }}>
-                  <GraduationCap className="w-5 h-5" />
-                </motion.div>
-                <span>Explore Courses</span>
-              </motion.button>
-            </div>
-          </div>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Learning Paths Section */}
+        <motion.div 
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+        >
+          {learningPaths.map((path, index) => (
+            <motion.div
+              key={path.title}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              className="group bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-violet-400/30 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-300"
+            >
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${path.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                {path.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">{path.title}</h3>
+              <p className="text-white/60 mb-6">{path.description}</p>
+              <div className="space-y-2">
+                {path.topics.map((topic, i) => (
+                  <div key={i} className="flex items-center space-x-2">
+                    <Star className="w-4 h-4 text-amber-400" />
+                    <span className="text-white/80">{topic}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </motion.div>
     </div>
-  );
-};
-
-const FeatureCard = ({ title, description, icon, gradient, route, highlights, delay }) => {
-  // Mock navigation function for demo
-  const navigate = (path) => {
-    console.log(`Navigating to: ${path}`);
-    alert(`Would navigate to: ${path}`);
-  };
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        delay: 1.4 + delay,
-        type: "spring",
-        damping: 12,
-        stiffness: 100
-      }}
-      whileHover={{ 
-        scale: 1.03,
-        y: -10,
-        boxShadow: "0 25px 50px rgba(139, 92, 246, 0.4)"
-      }}
-      onClick={() => navigate(route)}
-      className="group relative bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-lg border border-white/20 cursor-pointer overflow-hidden transition-all duration-300 hover:border-purple-400/50"
-    >
-      <motion.div 
-        className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0`}
-        whileHover={{ opacity: 0.1 }}
-        transition={{ duration: 0.3 }}
-      />
-      
-      <div className="relative z-10">
-        <motion.div 
-          whileHover={{ 
-            scale: 1.15,
-            rotate: 360 
-          }}
-          transition={{ duration: 0.6 }}
-          className={`inline-flex p-4 rounded-xl bg-gradient-to-r ${gradient} mb-6 shadow-lg`}
-        >
-          <div className="text-white">{icon}</div>
-        </motion.div>
-        
-        <h3 className={`text-2xl font-bold mb-4 bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
-          {title}
-        </h3>
-        
-        <p className="text-purple-100 leading-relaxed mb-6">
-          {description}
-        </p>
-
-        <div className="space-y-2 mb-6">
-          {highlights.map((highlight, index) => (
-            <motion.div 
-              key={index} 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * index }}
-              className="flex items-center space-x-2 text-sm text-purple-200"
-            >
-              <motion.div whileHover={{ scale: 1.2 }}>
-                <CheckCircle className="w-4 h-4 text-green-400" />
-              </motion.div>
-              <span>{highlight}</span>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="flex items-center space-x-2 text-purple-300 group-hover:text-pink-300 transition-colors duration-300 font-semibold">
-          <span>Explore Now</span>
-          <motion.div
-            whileHover={{ x: 5 }}
-            transition={{ duration: 0.3 }}
-          >
-            <ArrowRight className="w-4 h-4" />
-          </motion.div>
-        </div>
-      </div>
-      
-      <motion.div 
-        className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${gradient} opacity-0`}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      />
-    </motion.div>
   );
 };
 
