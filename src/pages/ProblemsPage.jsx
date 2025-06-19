@@ -288,7 +288,7 @@ export default function ProblemsPage() {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowFeedbackModal(false)}>
         <div
-          className="bg-purple-500 bg-opacity-100 max-w-6xl w-full mx-4 rounded-2xl p-8 shadow-2xl border border-violet-700/40 relative max-h-[90vh] overflow-y-auto"
+          className="bg-violet-800 bg-opacity-100 max-w-6xl w-full mx-4 rounded-2xl p-8 shadow-2xl border border-violet-700/40 relative max-h-[90vh] overflow-y-auto"
           style={{ boxSizing: 'border-box' }}
           onClick={e => e.stopPropagation()}
         >

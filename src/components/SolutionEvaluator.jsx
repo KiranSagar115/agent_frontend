@@ -251,6 +251,17 @@ export default function SolutionEvaluator({ problem, onEvaluationComplete, onSho
             {successMessage && (
               <div className="mt-4 text-green-300 text-lg font-semibold">{successMessage}</div>
             )}
+            {/* Feedback button for algorithm problems */}
+            {problem.problemType === 'algorithm' && lastEvaluationResult && (
+              <div className="mt-4">
+                <button
+                  className="px-4 py-2 rounded-lg text-lg font-medium bg-violet-700 text-white hover:bg-violet-800 transition-all duration-200"
+                  onClick={() => onShowFeedbackModal && onShowFeedbackModal(lastEvaluationResult)}
+                >
+                  Feedback
+                </button>
+              </div>
+            )}
             {error && (
               <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mt-4">
                 <p className="text-red-200">{error}</p>
