@@ -29,7 +29,7 @@ export default function ProblemsPage() {
         const params = new URLSearchParams();
         if (selectedType) params.append('problemType', selectedType);
         if (selectedGrid) params.append('gridType', selectedGrid);
-        if (selectedDifficulty) params.append('difficulty', selectedDifficulty);
+        if (selectedDifficulty && !showingProblemList()) params.append('difficulty', selectedDifficulty);
 
         const response = await axios.get(`${API_URL}/problems?${params}`, {
           headers: {
@@ -48,6 +48,11 @@ export default function ProblemsPage() {
 
     fetchProblems();
   }, [selectedType, selectedGrid, selectedDifficulty]);
+
+  // Helper to determine if we're at the problem list step
+  function showingProblemList() {
+    return selectedType && selectedGrid && selectedDifficulty && !selectedProblem;
+  }
 
   const renderTypeSelection = () => (
     <div className="grid grid-cols-2 gap-8">
