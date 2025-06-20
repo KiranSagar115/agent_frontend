@@ -27,15 +27,28 @@ export default function ProblemsPage() {
     const fetchProblems = async () => {
       try {
         const params = new URLSearchParams();
-        if (selectedType) params.append('problemType', selectedType);
         if (selectedGrid) params.append('gridType', selectedGrid);
         if (selectedDifficulty && !showingProblemList()) params.append('difficulty', selectedDifficulty);
 
-        const response = await axios.get(`${API_URL}/problems?${params}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        let response;
+        if (selectedType === 'algorithm') {
+          // Fetch from /api/algorithm
+          response = await axios.get(`${API_URL}/algorithm?${params}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+        } else if (selectedType === 'code') {
+          params.append('problemType', 'code');
+          response = await axios.get(`${API_URL}/problems?${params}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+        } else {
+          setProblems([]);
+          return;
+        }
         setProblems(response.data);
         setError(null);
       } catch (error) {
