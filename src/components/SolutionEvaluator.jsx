@@ -100,11 +100,9 @@ export default function SolutionEvaluator({ problem, onEvaluationComplete, onSho
           }
         });
       } else {
-        evalRes = await axios.post(`${API_URL}/problems/evaluate-algorithm`, {
-          problemId: problem._id,
-          solution: solution,
-          problemType: problem.problemType,
-          gridType: problem.gridType
+        evalRes = await axios.post(`${API_URL}/algorithm/evaluate`, {
+          questionId: problem._id,
+          answer: solution
         }, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -252,7 +250,7 @@ export default function SolutionEvaluator({ problem, onEvaluationComplete, onSho
               <div className="mt-4 text-green-300 text-lg font-semibold">{successMessage}</div>
             )}
             {/* Feedback button for algorithm problems */}
-            {problem.problemType === 'algorithm' && lastEvaluationResult && (
+            {lastEvaluationResult && (
               <div className="mt-4">
                 <button
                   className="px-4 py-2 rounded-lg text-lg font-medium bg-violet-700 text-white hover:bg-violet-800 transition-all duration-200"

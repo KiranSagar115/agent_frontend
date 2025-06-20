@@ -226,7 +226,7 @@ export default function ProblemsPage() {
           <p className="text-white/80 text-lg mb-8">{selectedProblem.description}</p>
           <div className="bg-gradient-to-br from-black/20 to-black/10 backdrop-blur-xl rounded-2xl p-6 mb-8 border border-white/10">
             <h3 className="text-xl font-semibold text-white mb-4">Test Cases</h3>
-            {selectedProblem.testCases.map((testCase, index) => (
+            {Array.isArray(selectedProblem.testCases) && selectedProblem.testCases.map((testCase, index) => (
               <div key={index} className="mb-6 last:mb-0">
                 <p className="text-white/80 text-lg"><strong>Input:</strong> {testCase.input}</p>
                 <p className="text-white/80 text-lg"><strong>Output:</strong> {testCase.output}</p>
