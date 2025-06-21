@@ -559,6 +559,7 @@ export default function LearnPage() {
         setCurrentTopic(response.data);
         setShowTopicModal(true);
         fetchSearchHistory();
+        setSearchQuery(''); // Clear the input field after successful search
       }
     } catch (error) {
       console.error('Error searching topic:', error);
